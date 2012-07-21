@@ -24,6 +24,7 @@ namespace GoogleAnalyticsDotNet
         /// <param name="trackingId">Google Analytics tracking ID, e.g., UA-XXXXXXXX-XX</param>
         /// <param name="pageName">Name of the page for which a view should be logged. Could be the application name, 
         /// a particular page/dialog of the application, or just an empty string if none is desired</param>
+        [System.Security.Permissions.PermissionSetAttribute(System.Security.Permissions.SecurityAction.LinkDemand, Name = "FullTrust")]
         public static void SendTrackingRequest(string trackingId, string pageName)
         {
             TimeSpan timeSpan = (DateTime.Now - new DateTime(1970, 1, 1).ToLocalTime());
@@ -48,14 +49,17 @@ namespace GoogleAnalyticsDotNet
         /// Gets some information about the machine and currently logged on user to generate a consistent unique idenitifer for the user
         /// </summary>
         /// <returns>String to identify the user uniquely</returns>
+        [System.Security.Permissions.PermissionSetAttribute(System.Security.Permissions.SecurityAction.LinkDemand, Name = "FullTrust")]
         private static string GetUniqueUserId()
         {
             string machineSid = string.Empty;
             try
             {
-                SecurityIdentifier sid = new SecurityIdentifier((byte[])new DirectoryEntry(
-                    string.Format("WinNT://{0},Computer", Environment.MachineName)).Children.Cast<DirectoryEntry>().First().InvokeGet("objectSID"), 0).AccountDomainSid;
-                machineSid = sid.Value;
+                using (DirectoryEntry entry = new DirectoryEntry(string.Format("WinNT://{0},Computer", Environment.MachineName)))
+                {
+                    SecurityIdentifier sid = new SecurityIdentifier((byte[])entry.Children.Cast<DirectoryEntry>().First().InvokeGet("objectSID"), 0).AccountDomainSid;
+                    machineSid = sid.Value;
+                }                
             }
             catch { }
 

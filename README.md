@@ -30,5 +30,5 @@ How to Use
 Attribution
 ---------------------
 
-Code based on ASP.NET version of Google Analytics for Mobile Websites:
-	- https://developers.google.com/analytics/devguides/collection/other/mobileWebsites
+Code based on ASP.NET version of Google Analytics for Mobile Websites:  
+* https://developers.google.com/analytics/devguides/collection/other/mobileWebsites
