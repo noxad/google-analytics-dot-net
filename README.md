@@ -8,14 +8,14 @@ Leverages the free Google Analytics service, avoiding paid services, or the hass
 Features
 ---------------------
 
-* Desktop App Usage Tracking
-** Allows you to track a .NET application's usage with free Google Analytics
-* Simple
-** One line of code logs a tracking request once a reference to the library is added to your project
-* Anonymous
-** Anonymizes user data, enabling you to track unique users, but do so without sending data that could identify the users
-* Reports
-** Take advantage of the already available Google Analytics reports to analyze your application's usage
+* **Desktop App Usage Tracking**
+	* Allows you to track a .NET application's usage with free Google Analytics
+* **Simple**
+	* One line of code logs a tracking request once a reference to the library is added to your project
+* **Anonymous**
+	* Anonymizes user data, enabling you to track unique users, but do so without sending data that could identify the users
+* **Reports**
+	* Take advantage of the already available Google Analytics reports to analyze your application's usage
 
 How to Use
 ---------------------
