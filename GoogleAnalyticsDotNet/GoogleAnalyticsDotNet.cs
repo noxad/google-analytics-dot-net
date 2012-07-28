@@ -27,9 +27,6 @@ namespace GoogleAnalyticsDotNet
         [System.Security.Permissions.PermissionSetAttribute(System.Security.Permissions.SecurityAction.LinkDemand, Name = "FullTrust")]
         public static void SendTrackingRequest(string trackingId, string pageName)
         {
-            TimeSpan timeSpan = (DateTime.Now - new DateTime(1970, 1, 1).ToLocalTime());
-            string timeStamp = timeSpan.TotalSeconds.ToString();
-
             string visitorId = GetUniqueUserId();
             string utmGifLocation = "http://www.google-analytics.com/__utm.gif";
 
@@ -93,12 +90,20 @@ namespace GoogleAnalyticsDotNet
             {
                 WebRequest request = WebRequest.Create(trackingGifUrl);
                 request.Timeout = 30000;
-                using (WebResponse response = request.GetResponse())
-                {
-                    // Ignore response - if it fails, it fails
-                }
+
+                StartAsyncWebRequest(request);
             }
             catch { } // Eat any exceptions - if it fails, it fails
+        }
+
+        private static void StartAsyncWebRequest(WebRequest request)
+        {
+            request.BeginGetResponse(new AsyncCallback(FinishAsyncWebRequest), request);
+        }
+
+        private static void FinishAsyncWebRequest(IAsyncResult result)
+        {
+            using (HttpWebResponse response = (HttpWebResponse)((HttpWebRequest)result.AsyncState).EndGetResponse(result)) { }
         }
 
         /// <summary>
