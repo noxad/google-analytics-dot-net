@@ -23,11 +23,17 @@ namespace GoogleAnalyticsDotNet
         /// </summary>
         /// <param name="trackingId">Google Analytics tracking ID, e.g., UA-XXXXXXXX-XX</param>
         /// <param name="pageName">Name of the page for which a view should be logged. Could be the application name, 
-        /// a particular page/dialog of the application, or just an empty string if none is desired</param>
+        /// a particular page/dialog of the application, etc. If null or empty string provided, page name will be 
+        /// user's unique visitor Id.</param>
+        /// <param name="referrer">Referral URL</param>
         [System.Security.Permissions.PermissionSetAttribute(System.Security.Permissions.SecurityAction.LinkDemand, Name = "FullTrust")]
-        public static void SendTrackingRequest(string trackingId, string pageName)
+        public static void SendTrackingRequest(string trackingId, string pageName, string referrer)
         {
             string visitorId = GetUniqueUserId();
+
+            if (string.IsNullOrEmpty(pageName))
+                pageName = visitorId;
+
             string utmGifLocation = "http://www.google-analytics.com/__utm.gif";
 
             // Construct the gif hit URL
@@ -39,7 +45,36 @@ namespace GoogleAnalyticsDotNet
                 "&utmcc=__utma%3D999.999.999.999.999.1%3B" +
                 "&utmvid=" + visitorId;
 
+            if (!string.IsNullOrEmpty(referrer))
+                trackingGifUrl += "&utmr=" + referrer;
+
             SendRequestToGoogleAnalytics(trackingGifUrl);
+        }
+
+        /// <summary>
+        /// Send a tracking request to Google Analytics. Using this overload, which does not include specifying a page name, will 
+        /// result in the user's unique visitor Id being used for the page name.
+        /// user's unique visitor Id.
+        /// </summary>
+        /// <param name="trackingId">Google Analytics tracking ID, e.g., UA-XXXXXXXX-XX</param>
+        [System.Security.Permissions.PermissionSetAttribute(System.Security.Permissions.SecurityAction.LinkDemand, Name = "FullTrust")]
+        public static void SendTrackingRequest(string trackingId)
+        {
+            SendTrackingRequest(trackingId, null, null);
+        }
+
+        /// <summary>
+        /// Send a tracking request to Google Analytics. Using this overload, which does not include specifying a page name, will 
+        /// result in the user's unique visitor Id being used for the page name.
+        /// </summary>
+        /// <param name="trackingId">Google Analytics tracking ID, e.g., UA-XXXXXXXX-XX</param>
+        /// <param name="pageName">Name of the page for which a view should be logged. Could be the application name, 
+        /// a particular page/dialog of the application, etc. If null or empty string provided, page name will be 
+        /// user's unique visitor Id.</param>
+        [System.Security.Permissions.PermissionSetAttribute(System.Security.Permissions.SecurityAction.LinkDemand, Name = "FullTrust")]
+        public static void SendTrackingRequest(string trackingId, string pageName)
+        {
+            SendTrackingRequest(trackingId, pageName, null);
         }
 
         /// <summary>
@@ -56,7 +91,7 @@ namespace GoogleAnalyticsDotNet
                 {
                     SecurityIdentifier sid = new SecurityIdentifier((byte[])entry.Children.Cast<DirectoryEntry>().First().InvokeGet("objectSID"), 0).AccountDomainSid;
                     machineSid = sid.Value;
-                }                
+                }
             }
             catch { }
 
@@ -69,9 +104,9 @@ namespace GoogleAnalyticsDotNet
             catch { }
 
             // Take the three pieces of user/machine-specific info and create a hash with them
-            using (MD5 sha = new MD5CryptoServiceProvider())
+            using (MD5 md5 = new MD5CryptoServiceProvider())
             {
-                byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes(machineSid + machineName + userName));
+                byte[] hash = md5.ComputeHash(Encoding.UTF8.GetBytes(machineSid + machineName + userName));
 
                 string userHash = BitConverter.ToString(hash);
                 userHash = userHash.Replace("-", string.Empty);
