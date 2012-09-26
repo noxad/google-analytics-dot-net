@@ -68,13 +68,11 @@ namespace GoogleAnalyticsDotNet
         /// result in the user's unique visitor Id being used for the page name.
         /// </summary>
         /// <param name="trackingId">Google Analytics tracking ID, e.g., UA-XXXXXXXX-XX</param>
-        /// <param name="pageName">Name of the page for which a view should be logged. Could be the application name, 
-        /// a particular page/dialog of the application, etc. If null or empty string provided, page name will be 
-        /// user's unique visitor Id.</param>
+        /// <param name="referrer">Referral URL</param>
         [System.Security.Permissions.PermissionSetAttribute(System.Security.Permissions.SecurityAction.LinkDemand, Name = "FullTrust")]
-        public static void SendTrackingRequest(string trackingId, string pageName)
+        public static void SendTrackingRequest(string trackingId, string referrer)
         {
-            SendTrackingRequest(trackingId, pageName, null);
+            SendTrackingRequest(trackingId, null, referrer);
         }
 
         /// <summary>
