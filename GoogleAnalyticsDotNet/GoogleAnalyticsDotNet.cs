@@ -3,6 +3,7 @@
 
 using System;
 using System.DirectoryServices;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
@@ -16,7 +17,7 @@ namespace GoogleAnalyticsDotNet
     /// </summary>
     public static class GoogleAnalyticsDotNet
     {
-        private const string trackerVersion = "4.4sa";
+        private const string TrackerVersion = "4.4sa";
 
         /// <summary>
         /// Send a tracking request to Google Analytics
@@ -29,16 +30,16 @@ namespace GoogleAnalyticsDotNet
         [System.Security.Permissions.PermissionSetAttribute(System.Security.Permissions.SecurityAction.LinkDemand, Name = "FullTrust")]
         public static void SendTrackingRequest(string trackingId, string pageName, string referrer)
         {
-            string visitorId = GetUniqueUserId();
+            var visitorId = GetUniqueUserId();
 
             if (string.IsNullOrEmpty(pageName))
                 pageName = visitorId;
 
-            string utmGifLocation = "http://www.google-analytics.com/__utm.gif";
+            const string utmGifLocation = "http://www.google-analytics.com/__utm.gif";
 
             // Construct the gif hit URL
-            string trackingGifUrl = utmGifLocation + "?" +
-                "utmwv=" + trackerVersion +
+            var trackingGifUrl = utmGifLocation + "?" +
+                "utmwv=" + TrackerVersion +
                 "&utmn=" + GetRandomNumber() +
                 "&utmp=" + pageName +
                 "&utmac=" + trackingId +
@@ -85,28 +86,31 @@ namespace GoogleAnalyticsDotNet
             string machineSid = string.Empty;
             try
             {
-                using (DirectoryEntry entry = new DirectoryEntry(string.Format("WinNT://{0},Computer", Environment.MachineName)))
+                using (var entry = new DirectoryEntry(string.Format("WinNT://{0},Computer", Environment.MachineName)))
                 {
-                    SecurityIdentifier sid = new SecurityIdentifier((byte[])entry.Children.Cast<DirectoryEntry>().First().InvokeGet("objectSID"), 0).AccountDomainSid;
+                    var sid = new SecurityIdentifier((byte[])entry.Children.Cast<DirectoryEntry>().First().InvokeGet("objectSID"), 0).AccountDomainSid;
                     machineSid = sid.Value;
                 }
             }
+            // ReSharper disable once EmptyGeneralCatchClause
             catch { }
 
-            string machineName = string.Empty;
+            var machineName = string.Empty;
             try { machineName = Environment.MachineName; }
+            // ReSharper disable once EmptyGeneralCatchClause
             catch { }
 
-            string userName = string.Empty;
+            var userName = string.Empty;
             try { userName = Environment.UserName; }
+            // ReSharper disable once EmptyGeneralCatchClause
             catch { }
 
             // Take the three pieces of user/machine-specific info and create a hash with them
-            using (MD5 md5 = new MD5CryptoServiceProvider())
+            using (var md5 = new MD5CryptoServiceProvider())
             {
-                byte[] hash = md5.ComputeHash(Encoding.UTF8.GetBytes(machineSid + machineName + userName));
+                var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(machineSid + machineName + userName));
 
-                string userHash = BitConverter.ToString(hash);
+                var userHash = BitConverter.ToString(hash);
                 userHash = userHash.Replace("-", string.Empty);
 
                 return userHash;
@@ -121,22 +125,23 @@ namespace GoogleAnalyticsDotNet
         {
             try
             {
-                WebRequest request = WebRequest.Create(trackingGifUrl);
+                var request = WebRequest.Create(trackingGifUrl);
                 request.Timeout = 30000;
 
                 StartAsyncWebRequest(request);
             }
+            // ReSharper disable once EmptyGeneralCatchClause
             catch { } // Eat any exceptions - if it fails, it fails
         }
 
         private static void StartAsyncWebRequest(WebRequest request)
         {
-            request.BeginGetResponse(new AsyncCallback(FinishAsyncWebRequest), request);
+            request.BeginGetResponse(FinishAsyncWebRequest, request);
         }
 
         private static void FinishAsyncWebRequest(IAsyncResult result)
         {
-            using (HttpWebResponse response = (HttpWebResponse)((HttpWebRequest)result.AsyncState).EndGetResponse(result)) { }
+            ((HttpWebRequest) result.AsyncState).EndGetResponse(result);
         }
 
         /// <summary>
@@ -145,8 +150,8 @@ namespace GoogleAnalyticsDotNet
         /// <returns>Random number string</returns>
         private static String GetRandomNumber()
         {
-            Random RandomClass = new Random();
-            return RandomClass.Next(0x7fffffff).ToString();
+            var rnd = new Random();
+            return rnd.Next(0x7fffffff).ToString(CultureInfo.InvariantCulture);
         }
     }
 }
